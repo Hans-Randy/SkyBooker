@@ -128,7 +128,7 @@ export default function FlightList() {
           className={styles.dateInput}
         />
       </div>
-
+      {flights.length?
       <div className={styles.list}>
         {flights.map((flight) => (
           <div key={flight.FLIGHTID} className={styles.card}>
@@ -184,7 +184,7 @@ export default function FlightList() {
             </div>
           </div>
         ))}
-      </div>
+      </div>:<div className={styles.notFound}>No Flights Found...</div>}
 
       {showModal && (
         <BookingModal 
