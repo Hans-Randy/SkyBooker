@@ -1,4 +1,4 @@
-import { Clock, Calendar, Plane, CreditCard, ArrowRightLeft } from 'lucide-react'
+import { Clock, Calendar, Plane, CreditCard, ArrowRightLeft, TicketsPlane } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import styles from './FlightList.module.css'
 import BookingModal from '../BookingModal/BookingModal'
@@ -134,7 +134,7 @@ export default function FlightList() {
           <div key={flight.FLIGHTID} className={styles.card}>
             <div className={styles.header}>
               <div className={styles.airline}>
-                <Plane className={styles.airlineIcon} />
+                <TicketsPlane className={styles.airlineIcon} />
                 <div>
                   <div className={styles.airlineName}>{flight.DEPARTURECITY} - {flight.ARRIVALCITY}</div>
                   <div className={styles.flightNumber}>Flight {flight.FLIGHTNUMBER}</div>
