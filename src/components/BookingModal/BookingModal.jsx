@@ -10,6 +10,7 @@ import {
   Shield 
 } from 'lucide-react'
 import styles from './BookingModal.module.css'
+import { formatDate, formatTime, getDuration } from '../../utils/formatters'
 
 export default function BookingModal({ flight, onClose }) {
   const [formData, setFormData] = useState({
@@ -52,17 +53,17 @@ export default function BookingModal({ flight, onClose }) {
                 <CreditCard size={24} />
               </div>
               <div>
-                <div className={styles.airlineName}>{flight.airline}</div>
-                <div className={styles.flightNumber}>Flight {flight.flightNumber}</div>
+                <div className={styles.airlineName}>{flight.DEPARTURECITY} - {flight.ARRIVALCITY}</div>
+                <div className={styles.flightNumber}>Flight {flight.FLIGHTNUMBER}</div>
               </div>
             </div>
-            <div className={styles.price}>{flight.price}</div>
+            <div className={styles.price}>${flight.PRICE}</div>
           </div>
 
           <div className={styles.route}>
             <div className={styles.endpoint}>
-              <div className={styles.time}>{flight.departureTime}</div>
-              <div className={styles.airport}>{flight.from}</div>
+              <div className={styles.time}>{formatTime(flight.DEPARTUREDATETIME)}</div>
+              <div className={styles.airport}>{flight.DEPARTUREAIRPORT}</div>
             </div>
 
             <div className={styles.path}>
@@ -70,23 +71,23 @@ export default function BookingModal({ flight, onClose }) {
                 <div className={styles.pathDot}></div>
                 <div className={styles.pathDot}></div>
               </div>
-              <div className={styles.pathLabel}>Direct</div>
+              <div className={styles.pathLabel}>{getDuration(flight.DEPARTUREDATETIME, flight.ARRIVALDATETIME)}</div>
             </div>
 
             <div className={styles.endpoint}>
-              <div className={styles.time}>{flight.arrivalTime}</div>
-              <div className={styles.airport}>{flight.to}</div>
+              <div className={styles.time}>{formatTime(flight.ARRIVALDATETIME)}</div>
+              <div className={styles.airport}>{flight.ARRIVALAIRPORT}</div>
             </div>
           </div>
 
           <div className={styles.details}>
             <div className={styles.detail}>
               <Calendar size={16} />
-              <span>{flight.date}</span>
+              <span>{formatDate(flight.DEPARTUREDATETIME)}</span>
             </div>
             <div className={styles.detail}>
               <Clock size={16} />
-              <span>{flight.duration}</span>
+              <span>{getDuration(flight.DEPARTUREDATETIME, flight.ARRIVALDATETIME)}</span>
             </div>
           </div>
         </div>
