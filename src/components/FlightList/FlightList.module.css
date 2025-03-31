@@ -47,6 +47,16 @@
   transition: border-color 0.2s ease;
 }
 
+.dropdown select:disabled,
+.dateInput:disabled {
+  background-color: #f1f5f9;
+  color: #94a3b8;
+  cursor: not-allowed;
+  border-color: #e2e8f0;
+  box-shadow: none;
+  opacity: 0.7;
+}
+
 .dropdown select:focus,
 .dateInput:focus {
   outline: none;

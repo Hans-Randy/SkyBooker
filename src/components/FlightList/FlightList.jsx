@@ -109,7 +109,7 @@ export default function FlightList() {
         <ArrowRightLeft className={styles.swapIcon} />
 
         <div className={styles.dropdown}>
-          <select value={toAirport} onChange={e => setToAirport(e.target.value)}>
+          <select disabled={!fromAirport} value={toAirport} onChange={e => setToAirport(e.target.value)}>
             <option value="">To Airport</option>
             {airportOptions.map((airport) => (
               <option key={airport.id} value={airport.id}>
@@ -120,6 +120,7 @@ export default function FlightList() {
         </div>
 
         <input
+          disabled={!fromAirport}
           type="date"
           value={departureDate}
           onChange={e => setDepartureDate(e.target.value)}
