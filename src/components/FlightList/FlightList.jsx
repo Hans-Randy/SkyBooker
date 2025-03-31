@@ -35,15 +35,16 @@ export default function FlightList() {
   useEffect(() => {
     async function fetchFlights() {
       try {
-        // Only run if fromAirport is selected
-        if (!fromAirport) return;
-  
-        const params = new URLSearchParams({ departureId: fromAirport });
-  
-        if (toAirport) params.append('arrivalId', toAirport);
-        if (departureDate) params.append('date', departureDate);
-  
-        const res = await fetch(`/api/search-flights?${params}`);
+        let res;
+
+        if(fromAirport) {
+          const params = new URLSearchParams({departureId: fromAirport});
+          if (toAirport) params.append('arrivalId', toAirport);
+          if (departureDate) params.append('date', departureDate);
+          res = await fetch(`/api/search-flights?${params}`);
+        }
+        else res = await fetch(`/api/search-flights`);
+        
         const data = await res.json();
         setFlights(data);
       } catch (err) {
