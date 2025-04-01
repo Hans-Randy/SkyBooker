@@ -32,34 +32,34 @@ export default function FlightList() {
   }, [])
 
 
+
+  async function fetchFlights() {
+    try {
+      let res;
+
+      if(fromAirport) {
+        const params = new URLSearchParams({departureId: fromAirport});
+        if (toAirport) params.append('arrivalId', toAirport);
+        if (departureDate) params.append('date', departureDate);
+        res = await fetch(`/api/search-flights?${params}`);
+      }
+      else res = await fetch(`/api/search-flights`);
+      
+      const data = await res.json();
+
+      for (const flight of data) {
+        const seatRes = await fetch(`/api/flights/${flight.FLIGHTID}/available-seats`);
+        const data = await seatRes.json();
+        const availableSeats = data.availableSeats;
+        flight.available = availableSeats > 0;
+      }
+      setFlights(data);
+    } catch (err) {
+      console.error('Error fetching flights:', err);
+    }
+  }
   //flight search every time search states change
   useEffect(() => {
-    async function fetchFlights() {
-      try {
-        let res;
-
-        if(fromAirport) {
-          const params = new URLSearchParams({departureId: fromAirport});
-          if (toAirport) params.append('arrivalId', toAirport);
-          if (departureDate) params.append('date', departureDate);
-          res = await fetch(`/api/search-flights?${params}`);
-        }
-        else res = await fetch(`/api/search-flights`);
-        
-        const data = await res.json();
-
-        for (const flight of data) {
-          const seatRes = await fetch(`/api/flights/${flight.FLIGHTID}/available-seats`);
-          const data = await seatRes.json();
-          const availableSeats = data.availableSeats;
-          flight.available = availableSeats > 0;
-        }
-        setFlights(data);
-      } catch (err) {
-        console.error('Error fetching flights:', err);
-      }
-    }
-  
     fetchFlights();
   }, [fromAirport, toAirport, departureDate]);
 
@@ -179,6 +179,7 @@ export default function FlightList() {
 
       {showModal && (
         <BookingModal 
+          refreshFlights={fetchFlights}
           flight={selectedFlight} 
           onClose={() => setShowModal(false)} 
           

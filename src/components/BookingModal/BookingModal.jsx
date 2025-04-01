@@ -15,7 +15,7 @@ import { formatDate, formatTime, getDuration } from '../../utils/formatters'
 
 
 
-export default function BookingModal({ flight, onClose }) {
+export default function BookingModal({ flight, onClose, refreshFlights }) {
   const [passengerOptions, setPassengerOptions] = useState([]);
   const [isExisting, setIsExisting] = useState(false);
 
@@ -91,6 +91,7 @@ export default function BookingModal({ flight, onClose }) {
       alert(`❌ Booking failed: ${err.message}`);
     }
     onClose()
+    await refreshFlights?.();
   }
 
   return (
