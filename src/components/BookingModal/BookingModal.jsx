@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { 
   Calendar, 
   Clock, 
@@ -7,16 +7,38 @@ import {
   Mail, 
   Phone, 
   CreditCard, 
-  Shield 
+  BookUser,
+  BookOpen
 } from 'lucide-react'
 import styles from './BookingModal.module.css'
 import { formatDate, formatTime, getDuration } from '../../utils/formatters'
 
+
+
 export default function BookingModal({ flight, onClose }) {
+  const [passengerOptions, setPassengerOptions] = useState([]);
+  const [isExisting, setIsExisting] = useState(false);
+
+  useEffect(() => {
+    async function fetchPassengers() {
+      try {
+        const res = await fetch('/api/passengers');
+        const data = await res.json();
+        setPassengerOptions(data);
+      } catch (err) {
+        console.error('Error fetching passengers:', err);
+      }
+    }
+
+    fetchPassengers();
+  }, []);
+
   const [formData, setFormData] = useState({
+    passengerId: '',
     name: '',
     email: '',
-    phone: ''
+    phone: '',
+    passport: '',
   })
 
   const handleChange = (e) => {
@@ -27,9 +49,48 @@ export default function BookingModal({ flight, onClose }) {
     }))
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    alert(`Booking confirmed for ${flight.airline} Flight ${flight.flightNumber}`)
+    try {
+      let passengerId = formData.passengerId;
+  
+      if (!isExisting) {
+        // Create passenger
+        const createRes = await fetch('/api/passengers', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: formData.name,
+            email: formData.email,
+            phone: formData.phone,
+            passport: formData.passport
+          })
+        });
+  
+        if (!createRes.ok) throw new Error('Failed to create passenger');
+  
+        // Fetch updated passenger list to get ID
+        const updatedPassengers = await fetch('/api/passengers');
+        const updatedList = await updatedPassengers.json();
+        const newPassenger = updatedList.find(p => p.email === formData.email);
+        if (!newPassenger) throw new Error('New passenger not found');
+        passengerId = newPassenger.id;
+      }
+  
+      // Create booking
+      const bookingRes = await fetch('/api/bookings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ passengerId, flightId: flight.FLIGHTID })
+      });
+  
+      if (!bookingRes.ok) throw new Error('Failed to book flight');
+      alert('✅ Booking successful!');
+      onClose();
+    } catch (err) {
+      console.error('Booking error:', err);
+      alert(`❌ Booking failed: ${err.message}`);
+    }
     onClose()
   }
 
@@ -63,7 +124,7 @@ export default function BookingModal({ flight, onClose }) {
           <div className={styles.route}>
             <div className={styles.endpoint}>
               <div className={styles.time}>{formatTime(flight.DEPARTUREDATETIME)}</div>
-              <div className={styles.airport}>{flight.DEPARTUREAIRPORT}</div>
+              <div className={styles.airport}>{flight.DEPARTUREAIRPORTCODE}</div>
             </div>
 
             <div className={styles.path}>
@@ -76,7 +137,7 @@ export default function BookingModal({ flight, onClose }) {
 
             <div className={styles.endpoint}>
               <div className={styles.time}>{formatTime(flight.ARRIVALDATETIME)}</div>
-              <div className={styles.airport}>{flight.ARRIVALAIRPORT}</div>
+              <div className={styles.airport}>{flight.ARRIVALAIRPORTCODE}</div>
             </div>
           </div>
 
@@ -96,6 +157,33 @@ export default function BookingModal({ flight, onClose }) {
           <h3 className={styles.formTitle}>Passenger Information</h3>
 
           <div className={styles.formGroup}>
+          <label className={styles.label}>Select Existing Passenger</label>
+          <div className={styles.inputContainer}>
+            <div className={styles.inputIcon}>
+                <BookUser size={18} />
+            </div>
+            <select
+              className={styles.input}
+              value={formData.passengerId || ''}
+              onChange={(e) => {
+                const selected = passengerOptions.find(p => p.id === parseInt(e.target.value))
+                setIsExisting(true)
+                setFormData(prev => ({
+                  ...prev,
+                  passengerId: selected?.id || '',
+                  name: selected?.name || '',
+                  email: selected?.email || '',
+                  phone: selected?.phone || '',
+                  passport: selected?.passport || '',
+                }))
+              }}
+            >
+              <option value="">Select a Passenger</option>
+              {passengerOptions.map(p => (
+                <option key={p.id} value={p.id}>{p.name}</option>
+              ))}
+            </select>
+          </div>
             <label className={styles.label}>Full Name</label>
             <div className={styles.inputContainer}>
               <div className={styles.inputIcon}>
@@ -109,6 +197,7 @@ export default function BookingModal({ flight, onClose }) {
                 value={formData.name}
                 onChange={handleChange}
                 required
+                disabled={isExisting}
               />
             </div>
           </div>
@@ -127,6 +216,7 @@ export default function BookingModal({ flight, onClose }) {
                 value={formData.email}
                 onChange={handleChange}
                 required
+                disabled={isExisting}
               />
             </div>
           </div>
@@ -145,13 +235,28 @@ export default function BookingModal({ flight, onClose }) {
                 value={formData.phone}
                 onChange={handleChange}
                 required
+                disabled={isExisting}
               />
             </div>
           </div>
 
-          <div className={styles.securityNote}>
-            <Shield size={18} />
-            <span>Your information is secure and will only be used for this booking</span>
+          <div className={styles.formGroup}>
+            <label className={styles.label}>Passport Number</label>
+            <div className={styles.inputContainer}>
+              <div className={styles.inputIcon}>
+                <BookOpen size={18} />
+              </div>
+              <input
+                type="text"
+                name="passport"
+                placeholder="AA111111"
+                className={styles.input}
+                value={formData.passport}
+                onChange={handleChange}
+                required
+                disabled={isExisting}
+              />
+            </div>
           </div>
 
           <div className={styles.actions}>
