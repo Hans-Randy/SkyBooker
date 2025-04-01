@@ -1,4 +1,4 @@
-import { Clock, Calendar, Plane, CreditCard, ArrowRightLeft, TicketsPlane } from 'lucide-react'
+import { Clock, Calendar, Plane, CreditCard, ArrowRightLeft, TicketsPlane, CircleAlert, CircleCheck } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import styles from './FlightList.module.css'
 import BookingModal from '../BookingModal/BookingModal'
@@ -47,6 +47,13 @@ export default function FlightList() {
         else res = await fetch(`/api/search-flights`);
         
         const data = await res.json();
+
+        for (const flight of data) {
+          const seatRes = await fetch(`/api/flights/${flight.FLIGHTID}/available-seats`);
+          const data = await seatRes.json();
+          const availableSeats = data.availableSeats;
+          flight.available = availableSeats > 0;
+        }
         setFlights(data);
       } catch (err) {
         console.error('Error fetching flights:', err);
@@ -55,6 +62,7 @@ export default function FlightList() {
   
     fetchFlights();
   }, [fromAirport, toAirport, departureDate]);
+
 
   const handleBookClick = (flight) => {
     setSelectedFlight(flight)
@@ -145,10 +153,21 @@ export default function FlightList() {
                   <Clock size={16} />
                   <span>{getDuration(flight.DEPARTUREDATETIME, flight.ARRIVALDATETIME)}</span>
                 </div>
+                {flight.available ? 
+                  <div className={styles.detail}>
+                    <CircleCheck size={16} className={styles.availableIcon}/>
+                    <span>Available</span>
+                  </div>:
+                  <div className={styles.detail}>
+                    <CircleAlert size={16} className={styles.unavailableIcon}/>
+                    <span>Not Available</span>
+                  </div>   
+                }
               </div>
               <button 
                 onClick={() => handleBookClick(flight)}
                 className={styles.bookButton}
+                disabled={!flight.available}
               >
                 <CreditCard size={16} />
                 Book Now

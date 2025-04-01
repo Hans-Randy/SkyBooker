@@ -239,6 +239,13 @@
   border-radius: 0.5rem;
   border: 1px solid #f1f5f9;
 }
+.unavailableIcon {
+  color: #E95CB5 ;
+}
+.availableIcon {
+  color: #16a34a ;
+}
+
 
 .bookButton {
   display: flex;
@@ -264,6 +271,14 @@
 .bookButton:active {
   transform: translateY(0);
   box-shadow: 0 2px 8px rgba(22, 163, 74, 0.2);
+}
+
+.bookButton:disabled {
+  background: #e5e7eb;
+  color: #9ca3af;
+  cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
 }
 
 .notFound {
