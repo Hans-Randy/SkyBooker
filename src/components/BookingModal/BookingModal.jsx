@@ -51,9 +51,8 @@ export default function BookingModal({ flight, onClose }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    let passengerId = formData.passengerId;
     try {
-      let passengerId = formData.passengerId;
-  
       if (!isExisting) {
         // Create passenger
         const createRes = await fetch('/api/passengers', {
@@ -166,21 +165,34 @@ export default function BookingModal({ flight, onClose }) {
               className={styles.input}
               value={formData.passengerId || ''}
               onChange={(e) => {
-                const selected = passengerOptions.find(p => p.id === parseInt(e.target.value))
-                setIsExisting(true)
-                setFormData(prev => ({
-                  ...prev,
-                  passengerId: selected?.id || '',
-                  name: selected?.name || '',
-                  email: selected?.email || '',
-                  phone: selected?.phone || '',
-                  passport: selected?.passport || '',
-                }))
+                const selectedId = parseInt(e.target.value);
+                const selected = passengerOptions.find(p => p.id === selectedId);
+
+                if (selected) {
+                  setIsExisting(true);
+                  setFormData({
+                    passengerId: selected.id,
+                    name: selected.name,
+                    email: selected.email,
+                    phone: selected.phone,
+                    passport: selected.passport,
+                  });
+                } else {
+                  // Reset to manual entry
+                  setIsExisting(false);
+                  setFormData({
+                    passengerId: '',
+                    name: '',
+                    email: '',
+                    phone: '',
+                    passport: '',
+                  });
+                }
               }}
             >
               <option value="">Select a Passenger</option>
               {passengerOptions.map(p => (
-                <option key={p.id} value={p.id}>{p.name}</option>
+                <option key={p.id} value={p.id}>{p.name} ({p.email})</option>
               ))}
             </select>
           </div>

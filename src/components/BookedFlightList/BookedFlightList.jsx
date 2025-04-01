@@ -1,10 +1,40 @@
 import { Calendar, CheckCircle, Ticket, User } from 'lucide-react'
 import styles from './BookedFlightList.module.css'
+import { useEffect, useState } from 'react'
 
 export default function BookedFlightList({ flights }) {
+  const [passenger, setPassenger] = useState('')
+  const [passengerOptions, setPassengerOptions] = useState([]);
+  useEffect(() => {
+    async function fetchPassengers() {
+      try {
+        const res = await fetch('/api/passengers');
+        const data = await res.json();
+        setPassengerOptions(data);
+      } catch (err) {
+        console.error('Error fetching passengers:', err);
+      }
+    }
+
+    fetchPassengers();
+  }, []);
+
   return (
     <div className={styles.container}>
       <h2 className={styles.title}>Your Bookings</h2>
+
+      <div className={styles.filters}>
+        <div className={styles.dropdown}>
+          <select value={passenger} onChange={e => setPassenger(e.target.value)}>
+            <option value="">Select Passenger</option>
+            {passengerOptions.map((passenger) => (
+              <option key={passenger.id} value={passenger.id}>
+                {passenger.name} ({passenger.email})
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
       
       {flights.length === 0 ? (
         <div className={styles.empty}>

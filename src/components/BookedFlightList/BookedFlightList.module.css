@@ -35,6 +35,45 @@
   font-size: 1.125rem;
 }
 
+.filters {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+}
+
+.dropdown select,
+.dateInput {
+  font-weight: 700;
+  padding: 0.5rem 1rem;
+  font-size: 1rem;
+  border-radius: 0.5rem;
+  border: 1px solid #e2e8f0;
+  background-color: white;
+  color: #0f172a;
+  font-weight: 500;
+  min-width: 160px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+  transition: border-color 0.2s ease;
+}
+
+.dropdown select:disabled,
+.dateInput:disabled {
+  background-color: #f1f5f9;
+  color: #94a3b8;
+  cursor: not-allowed;
+  border-color: #e2e8f0;
+  box-shadow: none;
+  opacity: 0.7;
+}
+
+.dropdown select:focus,
+.dateInput:focus {
+  outline: none;
+  border-color: #16a34a;
+}
+
 .list {
   display: grid;
   gap: 1.5rem;
