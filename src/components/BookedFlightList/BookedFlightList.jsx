@@ -59,11 +59,19 @@ export default function BookedFlightList({ flights }) {
         </div>
       </div>
       
-      {bookedFlights.length === 0 ? (
+      {!passenger && (
         <div className={styles.empty}>
-          <p>No bookings yet</p>
+          <p>Please select a passenger...</p>
         </div>
-      ) : (
+      )}
+      
+      {passenger && bookedFlights.length === 0 && (
+        <div className={styles.empty}>
+          <p>No bookings found for this passenger...</p>
+        </div>
+      )}
+      
+      {passenger && bookedFlights.length > 0 && (
         <div className={styles.list}>
           {bookedFlights.map((flight) => (
             <div key={flight.FLIGHTID} className={styles.card}>
