@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { toast } from 'react-hot-toast'
 import { 
   Calendar, 
   Clock, 
@@ -84,11 +85,11 @@ export default function BookingModal({ flight, onClose, refreshFlights }) {
       });
   
       if (!bookingRes.ok) throw new Error('Failed to book flight');
-      alert('✅ Booking successful!');
+      toast.success('Booking successful!');
       onClose();
     } catch (err) {
       console.error('Booking error:', err);
-      alert(`❌ Booking failed: ${err.message}`);
+      toast.error(`Booking failed: ${err.message}`);
     }
     onClose()
     await refreshFlights?.();
