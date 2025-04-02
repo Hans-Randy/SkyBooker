@@ -1,10 +1,13 @@
-import { Calendar, CheckCircle, Ticket, User } from 'lucide-react'
+import { Calendar, CheckCircle, Ticket, User, Clock, Tag } from 'lucide-react'
 import styles from './BookedFlightList.module.css'
 import { useEffect, useState } from 'react'
+import { formatDate, formatTime, getDuration } from '../../utils/formatters';
 
 export default function BookedFlightList({ flights }) {
   const [passenger, setPassenger] = useState('')
   const [passengerOptions, setPassengerOptions] = useState([]);
+  const [bookedFlights, setBookedFlights] = useState([]);
+
   useEffect(() => {
     async function fetchPassengers() {
       try {
@@ -18,6 +21,26 @@ export default function BookedFlightList({ flights }) {
 
     fetchPassengers();
   }, []);
+
+  //flight search every time search states change
+  useEffect(() => {
+    async function fetchBookedFlights() {
+      if (!passenger) {
+        setBookedFlights([]); // Optionally clear list when none selected
+        return;
+      }
+
+      try {
+        const res = await fetch(`/api/booked-flights?passengerId=${passenger}`);
+        const data = await res.json();
+        setBookedFlights(data);
+      } catch (err) {
+        console.error('Error fetching flights:', err);
+      }
+    }
+
+    fetchBookedFlights();
+  }, [passenger]);
 
   return (
     <div className={styles.container}>
@@ -36,34 +59,34 @@ export default function BookedFlightList({ flights }) {
         </div>
       </div>
       
-      {flights.length === 0 ? (
+      {bookedFlights.length === 0 ? (
         <div className={styles.empty}>
           <p>No bookings yet</p>
         </div>
       ) : (
         <div className={styles.list}>
-          {flights.map((flight) => (
-            <div key={flight.bookingId} className={styles.card}>
+          {bookedFlights.map((flight) => (
+            <div key={flight.FLIGHTID} className={styles.card}>
               <div className={styles.header}>
                 <div className={styles.airline}>
                   <div className={styles.airlineIcon}>
                     <Ticket size={24} />
                   </div>
                   <div>
-                    <div className={styles.airlineName}>{flight.airline}</div>
-                    <div className={styles.flightNumber}>Flight {flight.flightNumber}</div>
+                    <div className={styles.airlineName}>{flight.DEPARTURECITY} - {flight.ARRIVALCITY}</div>
+                    <div className={styles.flightNumber}>Flight {flight.FLIGHTNUMBER}</div>
                   </div>
                 </div>
                 <div className={styles.status}>
-                  <CheckCircle size={18} />
-                  <span>{flight.status}</span>
+                  <Tag size={18} />
+                  <span>Status</span>
                 </div>
               </div>
 
               <div className={styles.route}>
                 <div className={styles.endpoint}>
-                  <div className={styles.time}>{flight.departureTime}</div>
-                  <div className={styles.airport}>{flight.from}</div>
+                  <div className={styles.time}>{formatTime(flight.DEPARTUREDATETIME)}</div>
+                  <div className={styles.airport}>{flight.DEPARTUREAIRPORT}</div>
                 </div>
 
                 <div className={styles.path}>
@@ -71,12 +94,12 @@ export default function BookedFlightList({ flights }) {
                     <div className={styles.pathDot}></div>
                     <div className={styles.pathDot}></div>
                   </div>
-                  <div className={styles.pathLabel}>Direct</div>
+                  <div className={styles.pathLabel}>{getDuration(flight.DEPARTUREDATETIME, flight.ARRIVALDATETIME)}</div>
                 </div>
 
                 <div className={styles.endpoint}>
-                  <div className={styles.time}>{flight.arrivalTime}</div>
-                  <div className={styles.airport}>{flight.to}</div>
+                  <div className={styles.time}>{formatTime(flight.ARRIVALDATETIME)}</div>
+                  <div className={styles.airport}>{flight.ARRIVALAIRPORT}</div>
                 </div>
               </div>
 
@@ -84,17 +107,18 @@ export default function BookedFlightList({ flights }) {
                 <div className={styles.details}>
                   <div className={styles.detail}>
                     <Calendar size={16} />
-                    <span>{flight.date}</span>
+                    <span>{formatDate(flight.DEPARTUREDATETIME)}</span>
+                  </div>
+                  <div className={styles.detail}>
+                    <Clock size={16} />
+                    <span>{getDuration(flight.DEPARTUREDATETIME, flight.ARRIVALDATETIME)}</span>
                   </div>
                   <div className={styles.detail}>
                     <User size={16} />
-                    <span>Passenger Name</span>
+                    <span>{passengerOptions.find(p => p.id === parseInt(passenger))?.name||"Unknown Passenger"}</span>
                   </div>
                 </div>
-                <div className={styles.bookingId}>
-                  <Ticket size={16} />
-                  <span>Booking ID: {flight.bookingId}</span>
-                </div>
+                
               </div>
             </div>
           ))}
