@@ -74,7 +74,7 @@ export default function BookedFlightList({ flights }) {
       {passenger && bookedFlights.length > 0 && (
         <div className={styles.list}>
           {bookedFlights.map((flight) => (
-            <div key={flight.FLIGHTID} className={styles.card}>
+            <div key={flight.BOOKINGID} className={styles.card}>
               <div className={styles.header}>
                 <div className={styles.airline}>
                   <div className={styles.airlineIcon}>
@@ -86,8 +86,8 @@ export default function BookedFlightList({ flights }) {
                   </div>
                 </div>
                 <div className={styles.status}>
-                  <Tag size={18} />
-                  <span>Status</span>
+                  <CheckCircle size={18} />
+                  <span>{flight.BOOKINGSTATUS}</span>
                 </div>
               </div>
 
