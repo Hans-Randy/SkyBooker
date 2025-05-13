@@ -1,99 +1,86 @@
-import { useEffect, useState } from 'react'
-import { toast } from 'react-hot-toast'
-import { 
-  Calendar, 
-  Clock, 
-  X, 
-  User, 
-  Mail, 
-  Phone, 
-  CreditCard, 
+import { useEffect, useState } from "react";
+import { toast } from "react-hot-toast";
+import {
+  Calendar,
+  Clock,
+  X,
+  User,
+  Mail,
+  Phone,
+  CreditCard,
   BookUser,
-  BookOpen
-} from 'lucide-react'
-import styles from './BookingModal.module.css'
-import { formatDate, formatTime, getDuration } from '../../utils/formatters'
-
-
+  BookOpen,
+} from "lucide-react";
+import styles from "./BookingModal.module.css";
+import { formatDate, formatTime, getDuration } from "../../utils/formatters";
+import {
+  fetchPassengers,
+  createPassenger,
+  createBooking,
+} from "../../utils/api";
 
 export default function BookingModal({ flight, onClose, refreshFlights }) {
   const [passengerOptions, setPassengerOptions] = useState([]);
   const [isExisting, setIsExisting] = useState(false);
 
   useEffect(() => {
-    async function fetchPassengers() {
+    async function loadPassengers() {
       try {
-        const res = await fetch('/api/passengers');
-        const data = await res.json();
+        const data = await fetchPassengers();
         setPassengerOptions(data);
       } catch (err) {
-        console.error('Error fetching passengers:', err);
+        console.error("Error fetching passengers:", err);
       }
     }
 
-    fetchPassengers();
+    loadPassengers();
   }, []);
 
   const [formData, setFormData] = useState({
-    passengerId: '',
-    name: '',
-    email: '',
-    phone: '',
-    passport: '',
-  })
+    passengerId: "",
+    name: "",
+    email: "",
+    phone: "",
+    passport: "",
+  });
 
   const handleChange = (e) => {
-    const { name, value } = e.target
-    setFormData(prev => ({
+    const { name, value } = e.target;
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
-    }))
-  }
+      [name]: value,
+    }));
+  };
 
   const handleSubmit = async (e) => {
-    e.preventDefault()
+    e.preventDefault();
     let passengerId = formData.passengerId;
     try {
       if (!isExisting) {
         // Create passenger
-        const createRes = await fetch('/api/passengers', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            name: formData.name,
-            email: formData.email,
-            phone: formData.phone,
-            passport: formData.passport
-          })
+        const newPassenger = await createPassenger({
+          name: formData.name,
+          email: formData.email,
+          phone: formData.phone,
+          passport: formData.passport,
         });
-  
-        if (!createRes.ok) throw new Error('Failed to create passenger');
-  
-        // Fetch updated passenger list to get ID
-        const updatedPassengers = await fetch('/api/passengers');
-        const updatedList = await updatedPassengers.json();
-        const newPassenger = updatedList.find(p => p.email === formData.email);
-        if (!newPassenger) throw new Error('New passenger not found');
         passengerId = newPassenger.id;
       }
-  
+
       // Create booking
-      const bookingRes = await fetch('/api/bookings', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ passengerId, flightId: flight.FLIGHTID })
+      await createBooking({
+        passengerId,
+        flightId: flight.FLIGHTID,
       });
-  
-      if (!bookingRes.ok) throw new Error('Failed to book flight');
-      toast.success('Booking successful!');
+
+      toast.success("Booking successful!");
       onClose();
+      await refreshFlights?.();
     } catch (err) {
-      console.error('Booking error:', err);
+      console.error("Booking error:", err);
       toast.error(`Booking failed: ${err.message}`);
     }
-    onClose()
-    await refreshFlights?.();
-  }
+  };
 
   return (
     <div className={styles.modalOverlay}>
@@ -115,8 +102,12 @@ export default function BookingModal({ flight, onClose, refreshFlights }) {
                 <CreditCard size={24} />
               </div>
               <div>
-                <div className={styles.airlineName}>{flight.DEPARTURECITY} - {flight.ARRIVALCITY}</div>
-                <div className={styles.flightNumber}>Flight {flight.FLIGHTNUMBER}</div>
+                <div className={styles.airlineName}>
+                  {flight.DEPARTURECITY} - {flight.ARRIVALCITY}
+                </div>
+                <div className={styles.flightNumber}>
+                  Flight {flight.FLIGHTNUMBER}
+                </div>
               </div>
             </div>
             <div className={styles.price}>${flight.PRICE}</div>
@@ -124,8 +115,12 @@ export default function BookingModal({ flight, onClose, refreshFlights }) {
 
           <div className={styles.route}>
             <div className={styles.endpoint}>
-              <div className={styles.time}>{formatTime(flight.DEPARTUREDATETIME)}</div>
-              <div className={styles.airport}>{flight.DEPARTUREAIRPORTCODE}</div>
+              <div className={styles.time}>
+                {formatTime(flight.DEPARTUREDATETIME)}
+              </div>
+              <div className={styles.airport}>
+                {flight.DEPARTUREAIRPORTCODE}
+              </div>
             </div>
 
             <div className={styles.path}>
@@ -133,11 +128,15 @@ export default function BookingModal({ flight, onClose, refreshFlights }) {
                 <div className={styles.pathDot}></div>
                 <div className={styles.pathDot}></div>
               </div>
-              <div className={styles.pathLabel}>{getDuration(flight.DEPARTUREDATETIME, flight.ARRIVALDATETIME)}</div>
+              <div className={styles.pathLabel}>
+                {getDuration(flight.DEPARTUREDATETIME, flight.ARRIVALDATETIME)}
+              </div>
             </div>
 
             <div className={styles.endpoint}>
-              <div className={styles.time}>{formatTime(flight.ARRIVALDATETIME)}</div>
+              <div className={styles.time}>
+                {formatTime(flight.ARRIVALDATETIME)}
+              </div>
               <div className={styles.airport}>{flight.ARRIVALAIRPORTCODE}</div>
             </div>
           </div>
@@ -149,7 +148,9 @@ export default function BookingModal({ flight, onClose, refreshFlights }) {
             </div>
             <div className={styles.detail}>
               <Clock size={16} />
-              <span>{getDuration(flight.DEPARTUREDATETIME, flight.ARRIVALDATETIME)}</span>
+              <span>
+                {getDuration(flight.DEPARTUREDATETIME, flight.ARRIVALDATETIME)}
+              </span>
             </div>
           </div>
         </div>
@@ -158,46 +159,50 @@ export default function BookingModal({ flight, onClose, refreshFlights }) {
           <h3 className={styles.formTitle}>Passenger Information</h3>
 
           <div className={styles.formGroup}>
-          <label className={styles.label}>Select Existing Passenger</label>
-          <div className={styles.inputContainer}>
-            <div className={styles.inputIcon}>
+            <label className={styles.label}>Select Existing Passenger</label>
+            <div className={styles.inputContainer}>
+              <div className={styles.inputIcon}>
                 <BookUser size={18} />
-            </div>
-            <select
-              className={styles.input}
-              value={formData.passengerId || ''}
-              onChange={(e) => {
-                const selectedId = parseInt(e.target.value);
-                const selected = passengerOptions.find(p => p.id === selectedId);
+              </div>
+              <select
+                className={styles.input}
+                value={formData.passengerId || ""}
+                onChange={(e) => {
+                  const selectedId = parseInt(e.target.value);
+                  const selected = passengerOptions.find(
+                    (p) => p.id === selectedId
+                  );
 
-                if (selected) {
-                  setIsExisting(true);
-                  setFormData({
-                    passengerId: selected.id,
-                    name: selected.name,
-                    email: selected.email,
-                    phone: selected.phone,
-                    passport: selected.passport,
-                  });
-                } else {
-                  // Reset to manual entry
-                  setIsExisting(false);
-                  setFormData({
-                    passengerId: '',
-                    name: '',
-                    email: '',
-                    phone: '',
-                    passport: '',
-                  });
-                }
-              }}
-            >
-              <option value="">Select a Passenger</option>
-              {passengerOptions.map(p => (
-                <option key={p.id} value={p.id}>{p.name} ({p.email})</option>
-              ))}
-            </select>
-          </div>
+                  if (selected) {
+                    setIsExisting(true);
+                    setFormData({
+                      passengerId: selected.id,
+                      name: selected.name,
+                      email: selected.email,
+                      phone: selected.phone,
+                      passport: selected.passport,
+                    });
+                  } else {
+                    // Reset to manual entry
+                    setIsExisting(false);
+                    setFormData({
+                      passengerId: "",
+                      name: "",
+                      email: "",
+                      phone: "",
+                      passport: "",
+                    });
+                  }
+                }}
+              >
+                <option value="">Select a Passenger</option>
+                {passengerOptions.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.name} ({p.email})
+                  </option>
+                ))}
+              </select>
+            </div>
             <label className={styles.label}>Full Name</label>
             <div className={styles.inputContainer}>
               <div className={styles.inputIcon}>
@@ -282,5 +287,5 @@ export default function BookingModal({ flight, onClose, refreshFlights }) {
         </form>
       </div>
     </div>
-  )
+  );
 }
