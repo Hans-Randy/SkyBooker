@@ -34,7 +34,6 @@ export default function FlightList() {
     async function loadAirports() {
       try {
         const data = await fetchAirports();
-        console.log(data);
         setAirportOptions(data);
       } catch (err) {
         console.error("Error fetching airports:", err);
